@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Studio</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1f5f4a">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+/* Layout: vaste zijbalk met navigatie, werkvlak rechts; op mobiel navigatie bovenaan. */
+:root{
+  --bg:#f6f5f1; --panel:#ffffff; --panel-2:#faf9f6; --line:#e6e3dc; --line-2:#d9d5cc;
+  --text:#1d1f1c; --muted:#6b6e67; --faint:#9a9c95;
+  --accent:#1f5f4a; --accent-2:#e8f1ec; --accent-ink:#ffffff;
+  --bad:#b0392b; --bad-bg:#fbe9e6; --warn:#a86a00; --warn-bg:#fdf3df; --ok:#1d7a4f; --ok-bg:#e5f3ea;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+  --radius:10px; --shadow:0 1px 2px rgba(16,24,40,.05),0 3px 12px rgba(16,24,40,.04);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#151715; --panel:#1d201d; --panel-2:#222522; --line:#2e322e; --line-2:#3a3f3a;
+  --text:#ebece7; --muted:#a2a69d; --faint:#7a7e76;
+  --accent:#5fb48f; --accent-2:#1f3229; --accent-ink:#0f1a14;
+  --bad:#ef8577; --bad-bg:#3a2320; --warn:#e5b35a; --warn-bg:#33291a; --ok:#6cc796; --ok-bg:#1c3226;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#151715; --panel:#1d201d; --panel-2:#222522; --line:#2e322e; --line-2:#3a3f3a;
+  --text:#ebece7; --muted:#a2a69d; --faint:#7a7e76;
+  --accent:#5fb48f; --accent-2:#1f3229; --accent-ink:#0f1a14;
+  --bad:#ef8577; --bad-bg:#3a2320; --warn:#e5b35a; --warn-bg:#33291a; --ok:#6cc796; --ok-bg:#1c3226;
+  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--text);font:14px/1.5 var(--font);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app{display:grid;grid-template-columns:216px minmax(0,1fr);min-height:100%}
+.side{background:var(--panel);border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:2px}
+.brand{padding:2px 10px 18px}
+.brand b{display:block;font-size:15px;font-weight:650;letter-spacing:-.01em}
+.brand small{display:block;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--muted);border:0;background:none;text-align:left;width:100%;text-decoration:none}
+.nav:hover{background:var(--panel-2);color:var(--text)}
+.nav.on{background:var(--accent-2);color:var(--accent);font-weight:600}
+.nav .cnt{font-size:11px;background:var(--bad);color:#fff;border-radius:9px;padding:0 6px;line-height:17px;font-weight:600}
+.side .spacer{flex:1}
+.navsep{height:1px;background:var(--line);margin:8px 10px}
+.store{font-size:12px;border-radius:8px;padding:10px;background:var(--panel-2);border:1px solid var(--line);color:var(--muted)}
+.store b{display:flex;align-items:center;gap:6px;color:var(--text);font-weight:600;margin-bottom:2px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--faint);flex:none}
+.store.ok .dot{background:var(--ok)} .store.warn .dot{background:var(--warn)} .store.bad .dot{background:var(--bad)}
+main{padding:26px 32px 64px;max-width:1180px;width:100%}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;flex-wrap:wrap}
+h1{font-size:22px;margin:0;letter-spacing:-.02em;font-weight:650;text-wrap:balance}
+h2{font-size:14.5px;margin:0;font-weight:620}
+h3{font-size:12px;margin:0 0 8px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.sub{color:var(--muted);margin-top:4px;max-width:68ch}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.grow{flex:1}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))} .g3{grid-template-columns:repeat(3,minmax(0,1fr))} .g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:1000px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3,.g2{grid-template-columns:1fr}}
+.stat .l{color:var(--muted);font-size:12px}
+.stat .v{font-size:20px;font-weight:650;letter-spacing:-.02em;margin-top:2px;font-variant-numeric:tabular-nums}
+.stat .s{color:var(--faint);font-size:12px}
+.btn{border:1px solid var(--line-2);background:var(--panel);padding:7px 12px;border-radius:8px;cursor:pointer;white-space:nowrap;line-height:1.2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;color:var(--text)}
+.btn:hover{border-color:var(--faint)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.sm{padding:4px 9px;font-size:12.5px}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.btn.ghost:hover{color:var(--text);background:var(--panel-2)}
+.btn.danger{color:var(--bad)}
+.btn[aria-disabled="true"]{opacity:.5;pointer-events:none}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;color:var(--muted);font-weight:550;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+tbody tr.click{cursor:pointer} tbody tr.click:hover td{background:var(--panel-2)}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.muted{color:var(--muted)} .faint{color:var(--faint)} .neg{color:var(--bad)}
+.mono{font-family:var(--mono);font-size:12.5px}
+.tablewrap{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow-x:auto}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--panel-2);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok);border-color:transparent}
+.pill.bad{background:var(--bad-bg);color:var(--bad);border-color:transparent}
+.pill.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+.pill.acc{background:var(--accent-2);color:var(--accent);border-color:transparent}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line-2);background:var(--panel);border-radius:20px;padding:4px 11px;cursor:pointer;font-size:12.5px;color:var(--muted)}
+.chip.on{background:var(--text);color:var(--bg);border-color:var(--text)}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.toolbar select{width:auto}
+.empty{text-align:center;padding:34px 20px;color:var(--muted)}
+.empty b{display:block;color:var(--text);font-size:15px;margin-bottom:4px}
+.quiet{color:var(--muted);font-size:13px;padding:6px 0}
+.banner{border-radius:var(--radius);padding:10px 14px;background:var(--accent-2);color:var(--accent);font-size:13px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.banner.warn{background:var(--warn-bg);color:var(--warn)}
+.banner.bad{background:var(--bad-bg);color:var(--bad)}
+/* werkregels */
+.items{list-style:none;margin:0;padding:0}
+.item{display:flex;gap:12px;align-items:flex-start;padding:10px 0 10px 12px;border-bottom:1px solid var(--line);border-left:3px solid transparent;margin-left:-12px}
+.item:last-child{border-bottom:0}
+.item.sev-bad{border-left-color:var(--bad)} .item.sev-warn{border-left-color:var(--warn)} .item.sev-acc{border-left-color:var(--accent)}
+.item .main{flex:1;min-width:0}
+.item .ctx{font-size:12px;color:var(--muted)}
+.item .t{font-weight:600}
+.item .r{font-size:12.5px;color:var(--muted)}
+.item .side-r{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:none}
+.when{font-size:12px;color:var(--muted);white-space:nowrap}
+.when.late{color:var(--bad);font-weight:600}
+.chk{appearance:none;width:18px;height:18px;border:1.5px solid var(--line-2);border-radius:5px;margin:2px 0 0;cursor:pointer;flex:none;background:var(--panel);display:grid;place-content:center}
+.chk:checked{background:var(--ok);border-color:var(--ok)}
+.chk:checked::after{content:"";width:5px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg) translate(-1px,-1px)}
+/* fase-balk */
+.phases{display:flex;gap:3px;margin-top:6px}
+.phases i{display:block;height:4px;flex:1;border-radius:2px;background:var(--line)}
+.phases i.on{background:var(--accent)}
+.stagebar{height:5px;border-radius:3px;background:var(--line);margin-top:8px;overflow:hidden}
+.stagebar span{display:block;height:100%;background:var(--accent)}
+/* checklist */
+.check-list{list-style:none;margin:0;padding:0}
+.check-list li{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.check-list li:last-child{border-bottom:0}
+.check-list .mark{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line-2);flex:none;display:grid;place-content:center;font-size:11px;color:#fff}
+.check-list li.done .mark{background:var(--ok);border-color:var(--ok)}
+.check-list li.done span.t{color:var(--faint);text-decoration:line-through}
+/* formulieren */
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--muted);min-width:0}
+label.f>span{font-weight:550}
+input[type=text],input[type=number],input[type=date],input[type=email],input[type=url],input[type=tel],select,textarea{border:1px solid var(--line-2);border-radius:7px;padding:7px 9px;background:var(--panel);color:var(--text);width:100%;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid color-mix(in srgb,var(--accent) 35%,transparent);outline-offset:0;border-color:var(--accent)}
+textarea{min-height:68px;resize:vertical}
+.fg{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+.fg .full{grid-column:1/-1}
+@media (max-width:620px){.fg{grid-template-columns:1fr}}
+.hint{font-size:12px;color:var(--faint)}
+.dropzone{border:2px dashed var(--line-2);border-radius:10px;padding:18px;text-align:center;color:var(--muted);cursor:pointer;display:block}
+.dropzone:hover,.dropzone.over{border-color:var(--accent);color:var(--accent)}
+.kv{display:grid;grid-template-columns:150px 1fr;gap:6px 14px;font-size:13px}
+.kv>div:nth-child(odd){color:var(--muted)}
+.big{font-size:28px;font-weight:650;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(10,14,22,.45);display:flex;align-items:flex-start;justify-content:center;padding:5vh 16px;z-index:50;overflow:auto}
+.modal{background:var(--panel);border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.25);width:min(640px,100%);border:1px solid var(--line)}
+.modal.wide{width:min(900px,100%)}
+.modal .mh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:15px 20px;border-bottom:1px solid var(--line)}
+.modal .mh h2{font-size:16px}
+.modal .mb{padding:18px 20px}
+.modal .mf{display:flex;gap:8px;justify-content:flex-end;align-items:center;padding:13px 20px;border-top:1px solid var(--line);flex-wrap:wrap}
+.x{border:0;background:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;padding:2px 6px;border-radius:6px}
+.section{margin-top:18px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:9px;font-size:13px;z-index:90;box-shadow:var(--shadow)}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .side{position:sticky;top:0;z-index:20;height:auto;flex-direction:row;overflow-x:auto;padding:8px 10px;border-right:0;border-bottom:1px solid var(--line)}
+  .side .brand,.side .spacer,.side .store,.side .navsep{display:none}
+  .nav{width:auto;flex:none}
+  main{padding:18px 16px 56px}
+  .kv{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div id="app" class="app">
+  <aside class="side" id="side"></aside>
+  <main id="main"><p class="quiet">Dashboard laden…</p></main>
+</div>
+<script>
+'use strict';
+/* ========== Hulpfuncties ========== */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)).replace(/-/g, '').slice(0, 14);
+const pad = n => String(n).padStart(2, '0');
+const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const today = () => iso(new Date());
+const addDays = (s, n) => { const d = new Date(s + 'T12:00:00'); d.setDate(d.getDate() + n); return iso(d); };
+const dagVerschil = (a, b) => Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 864e5);
+const DAGEN = ['zo', 'ma', 'di', 'wo', 'do', 'vr', 'za'];
+const MAANDEN = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+const fmtDate = s => { if (!s) return ''; const d = new Date(s + 'T12:00:00'); return DAGEN[d.getDay()] + ' ' + d.getDate() + ' ' + MAANDEN[d.getMonth()] + (d.getFullYear() !== new Date().getFullYear() ? ' ' + d.getFullYear() : ''); };
+const rel = s => { const n = dagVerschil(today(), s); if (n === 0) return 'vandaag'; if (n === 1) return 'morgen'; if (n === -1) return 'gisteren'; return n > 0 ? 'over ' + n + ' dagen' : (-n) + ' dagen geleden'; };
+const r2 = n => Math.round((Number(n) || 0) * 100 + Number.EPSILON * 100) / 100;
+const num = v => { const n = parseFloat(String(v ?? '').replace(',', '.')); return isNaN(n) ? 0 : n; };
+const EUR = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' });
+const EUR0 = new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+const money = n => EUR.format(r2(n));
+const money0 = n => EUR0.format(Math.round(n || 0));
+const fmtMoment = ms => ms ? new Date(ms).toLocaleString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+const clone = o => JSON.parse(JSON.stringify(o));
+const byId = (list, id) => list.find(x => x.id === id);
+function toast(msg, ms = 2400) { const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), ms); }
+
+/* ========== Begrippen ========== */
+const LEAD_FASEN = [['contact', 'Eerste contact'], ['gesprek', 'Gesprek gepland'], ['offerte', 'Offerte verstuurd'], ['gewonnen', 'Gewonnen'], ['verloren', 'Verloren']];
+const OPEN_FASEN = ['contact', 'gesprek', 'offerte'];
+const PROJECT_FASEN = [['intake', 'Intake'], ['bouw', 'Bouw'], ['test', 'Test'], ['live', 'Live'], ['afgerond', 'Afgerond']];
+const AUTO_STATUS = [['idee', 'Idee'], ['bouw', 'In ontwikkeling'], ['live', 'Live'], ['gepauzeerd', 'Gepauzeerd']];
+const AUTO_BEHEER = [['', 'Nog niet bepaald'], ['beheer', 'Doorlopend beheer'], ['eenmalig', 'Eenmalig opgeleverd']];
+const KLANT_BEHEER = [['', 'Nog geen afspraken'], ['beheer', 'Doorlopend beheer'], ['geen', 'Geen beheer']];
+const label = (list, v) => (list.find(x => x[0] === v) || ['', v || '—'])[1];
+const STATUS_CLS = { idee: '', bouw: 'acc', live: 'ok', gepauzeerd: 'warn' };
+const LEAD_CLS = { contact: '', gesprek: 'acc', offerte: 'warn', gewonnen: 'ok', verloren: '' };
+
+/* ========== Staat ========== */
+const KEYS = ['leads', 'klanten', 'projecten', 'automatiseringen', 'taken', 'instellingen'];
+function leeg() {
+  return { leads: [], klanten: [], projecten: [], automatiseringen: [], taken: [], instellingen: { studio: '', startVerborgen: false } };
+}
+let S = leeg();
+const UI = { salesFilter: 'open', projFilter: 'actief', projKlant: '', autoStatus: '', autoVoor: '' };
+
+/* ========== Opslag: dashboard.json in dezelfde map als de boekhouding, met IndexedDB als cache ========== */
+// Dashboard en boekhouding draaien in dezelfde app (zelfde origin). Het dashboard gebruikt
+// de opslagmap die je in Boekhouding hebt gekozen en schrijft daar dashboard.json naast administratie.json.
+const DATAFILE = 'dashboard.json', EIGEN = 'studio-dashboard', BK = 'zzp-boekhouding';
+const _dbs = {};
+function dbFor(name) {
+  if (_dbs[name]) return _dbs[name];
+  const stores = name === BK ? ['kv', 'files'] : ['kv'];   // zelfde opbouw als de boekhoudtool
+  return (_dbs[name] = new Promise((res, rej) => {
+    const r = indexedDB.open(name, 1);
+    r.onupgradeneeded = () => stores.forEach(s => { if (!r.result.objectStoreNames.contains(s)) r.result.createObjectStore(s); });
+    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+  }));
+}
+async function idbGet(name, key) { const d = await dbFor(name); return new Promise((res, rej) => { const q = d.transaction('kv').objectStore('kv').get(key); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); }
+async function idbSet(name, key, val) { const d = await dbFor(name); return new Promise((res, rej) => { const t = d.transaction('kv', 'readwrite'); t.objectStore('kv').put(val, key); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); }
+
+const Store = {
+  supported: typeof window.showDirectoryPicker === 'function',
+  status: 'laden',          // laden | connected | needs-permission | none | unsupported | error
+  dir: null, pending: false, lastWrite: null, error: null, updatedAt: 0, _timer: null,
+  async init() {
+    try { const local = await idbGet(EIGEN, 'state'); if (local && local.app === 'studio-dashboard') toepassen(local); } catch (e) { console.warn(e); }
+    if (!this.supported) { this.status = 'unsupported'; return; }
+    try { this.dir = await idbGet(BK, 'dir'); } catch (e) { this.dir = null; }
+    if (!this.dir) { this.status = 'none'; return; }
+    try {
+      const p = await this.dir.queryPermission({ mode: 'readwrite' });
+      if (p === 'granted') { this.status = 'connected'; await this.loadFromFolder(); } else this.status = 'needs-permission';
+    } catch (e) { this.status = 'needs-permission'; }
+  },
+  async reconnect() {
+    if (!this.dir) { location.href = 'boekhouding.html#instellingen'; return; }
+    try {
+      const p = await this.dir.requestPermission({ mode: 'readwrite' });
+      if (p !== 'granted') { toast('Geen toestemming gekregen voor de map'); return; }
+      this.status = 'connected'; this.error = null;
+      await this.loadFromFolder(); await laadFin(); render();
+      toast('Verbonden met map ' + this.dir.name);
+    } catch (e) { this.status = 'error'; this.error = e.message; render(); }
+  },
+  async readFile() {
+    try { const fh = await this.dir.getFileHandle(DATAFILE); const t = await (await fh.getFile()).text(); return t ? JSON.parse(t) : null; }
+    catch (e) { if (e.name === 'NotFoundError') return null; throw e; }
+  },
+  async loadFromFolder() {
+    try {
+      const file = await this.readFile();
+      if (file && file.app === 'studio-dashboard' && (file.updatedAt || 0) > (this.updatedAt || 0)) { toepassen(file); await idbSet(EIGEN, 'state', pak()); }
+      else if (!file || (file.updatedAt || 0) < (this.updatedAt || 0)) await this.writeNow();
+    } catch (e) { this.status = 'error'; this.error = 'Kon ' + DATAFILE + ' niet lezen: ' + e.message; }
+  },
+  save() {
+    this.updatedAt = Date.now();
+    idbSet(EIGEN, 'state', pak()).catch(e => console.error(e));
+    if (this.status === 'connected') { this.pending = true; clearTimeout(this._timer); this._timer = setTimeout(() => this.writeNow(), 700); }
+    renderSide();
+  },
+  saveAll() { this.save(); },
+  async writeNamed(sub, name, content) {
+    let d = this.dir; if (sub) d = await d.getDirectoryHandle(sub, { create: true });
+    const w = await (await d.getFileHandle(name, { create: true })).createWritable(); await w.write(content); await w.close();
+  },
+  async writeNow() {
+    if (!this.dir || this.status !== 'connected') return;
+    clearTimeout(this._timer);
+    try {
+      const json = JSON.stringify(pak(), null, 1);
+      await this.writeNamed(null, DATAFILE, json);
+      const snap = 'dashboard-' + today() + '.json';   // één kopie per dag, naast die van de boekhouding
+      if ((await idbGet(EIGEN, 'lastSnap')) !== snap) { await this.writeNamed('backups', snap, json); await idbSet(EIGEN, 'lastSnap', snap); }
+      this.lastWrite = new Date(); this.pending = false; this.error = null;
+    } catch (e) {
+      console.error(e); this.error = e.message;
+      this.status = (e.name === 'NotAllowedError' || e.name === 'SecurityError') ? 'needs-permission' : 'error';
+      render();
+    }
+    renderSide();
+  }
+};
+function pak() { const data = {}; KEYS.forEach(k => data[k] = S[k]); return { app: 'studio-dashboard', version: 2, updatedAt: Store.updatedAt, data }; }
+function toepassen(o) {
+  const n = leeg(); KEYS.forEach(k => { if (o.data && o.data[k] !== undefined) n[k] = o.data[k]; });
+  n.instellingen = { ...leeg().instellingen, ...(n.instellingen || {}) }; delete n.instellingen.boekhoudingUrl;
+  S = n; Store.updatedAt = o.updatedAt || 0;
+}
+window.addEventListener('beforeunload', e => { if (Store.pending) { Store.writeNow(); e.preventDefault(); e.returnValue = ''; } });
+function heeftGegevens() { return ['leads', 'klanten', 'projecten', 'automatiseringen', 'taken'].some(k => S[k].length) || !!S.instellingen.studio; }
+let _rt;
+function scheduleRender() { clearTimeout(_rt); _rt = setTimeout(render, 60); }
+
+/* ========== Opzoeken en labels ========== */
+const klant = id => byId(S.klanten, id);
+const klantNaam = id => (klant(id) || {}).naam || '';
+const project = id => byId(S.projecten, id);
+const voorLabel = a => a.voor === 'studio' ? 'Eigen studio' : a.voor ? (klantNaam(a.voor) || 'Onbekende klant') : 'Nog geen klant';
+function koppeling(t) {
+  if (!t.koppeling) return null;
+  const [type, id] = t.koppeling.split(':');
+  if (type === 'project') { const p = project(id); return p && { type, rec: p, ctx: [klantNaam(p.klantId), p.naam].filter(Boolean).join(' · '), open: 'project:' + id }; }
+  if (type === 'klant') { const k = klant(id); return k && { type, rec: k, ctx: k.naam, open: 'klant:' + id }; }
+  if (type === 'lead') { const l = byId(S.leads, id); return l && { type, rec: l, ctx: l.bedrijf, open: 'lead:' + id }; }
+  if (type === 'automatisering') { const a = byId(S.automatiseringen, id); return a && { type, rec: a, ctx: [a.voor && a.voor !== 'studio' ? klantNaam(a.voor) : a.voor === 'studio' ? 'Eigen studio' : '', a.naam].filter(Boolean).join(' · '), open: 'automatisering:' + id }; }
+  return null;
+}
+const openTaken = koppel => S.taken.filter(t => !t.klaar && t.koppeling === koppel).sort((a, b) => (a.datum || '9999').localeCompare(b.datum || '9999'));
+
+/* ========== Financiën: rechtstreeks uit de boekhouding in dezelfde app ========== */
+// Zelfde rekenregels als het scherm Overzicht van de boekhoudtool:
+// openstaand = definitieve, nog niet betaalde facturen (status "verzonden"), bedrag incl. btw;
+// te laat = vervaldatum vóór vandaag.
+function factuurIncl(f, kor) {
+  const vrij = f.btwVerlegd || kor; let excl = 0; const per = {};
+  (f.regels || []).forEach(r => { const b = r2(num(r.aantal) * num(r.prijs)); excl += b; const t = vrij ? '0' : String(r.btw ?? '21'); per[t] = (per[t] || 0) + b; });
+  let btw = 0; Object.entries(per).forEach(([t, g]) => { btw += r2(r2(g) * Number(t) / 100); });
+  return r2(r2(excl) + r2(btw));
+}
+let FIN = null;
+async function laadFin() {
+  let st = null;
+  try { st = await idbGet(BK, 'state'); } catch (e) { }
+  // een nieuwere versie in de map (bijv. bijgewerkt op een ander apparaat) gaat voor
+  if (Store.status === 'connected' && Store.dir) {
+    try {
+      const t = await (await (await Store.dir.getFileHandle('administratie.json')).getFile()).text();
+      const f = t ? JSON.parse(t) : null;
+      if (f && f.app === 'zzp-boekhouding' && (!st || (f.updatedAt || 0) > (st.updatedAt || 0))) st = f;
+    } catch (e) { }
+  }
+  if (!st || st.app !== 'zzp-boekhouding' || !st.updatedAt) { FIN = null; return; }
+  const kor = !!(st.settings && st.settings.kor); const fs = st.facturen || []; const B = (st.settings && st.settings.bedrijf) || {};
+  FIN = {
+    open: fs.filter(f => f.status === 'verzonden').map(f => ({ bedrag: factuurIncl(f, kor), vervaldatum: f.vervaldatum || '' })),
+    concept: fs.filter(f => f.status === 'concept').length,
+    openTx: (st.transacties || []).filter(t => t.status === 'open').length,
+    bedrijf: !!(B.naam && B.iban), bijgewerkt: st.updatedAt
+  };
+}
+function finSamenvatting() {
+  if (!FIN) return null;
+  const t = today(); const laat = FIN.open.filter(f => f.vervaldatum && f.vervaldatum < t);
+  return { bedrag: r2(FIN.open.reduce((s, f) => s + f.bedrag, 0)), aantal: FIN.open.length, laat: laat.length, bedragLaat: r2(laat.reduce((s, f) => s + f.bedrag, 0)), concept: FIN.concept, openTx: FIN.openTx, bijgewerkt: FIN.bijgewerkt };
+}
+
+/* ========== Werklijst voor Vandaag ========== */
+function werklijst() {
+  const t = today(), week = addDays(t, 7);
+  const A = { aandacht: [], vandaag: [], komend: [], opvolgen: [] };
+  const push = (lijst, it) => A[lijst].push(it);
+  S.taken.filter(x => !x.klaar && x.datum).forEach(x => {
+    const k = koppeling(x); const base = { soort: 'taak', id: x.id, ctx: k ? k.ctx : 'Losse taak', titel: x.titel, datum: x.datum, open: 'taak:' + x.id, knop: 'Open de taak' };
+    if (x.datum < t) push('aandacht', { ...base, ernst: 'bad', reden: 'Moest ' + rel(x.datum) + ' af zijn.' });
+    else if (x.datum === t) push('vandaag', { ...base, reden: 'Gepland voor vandaag.' });
+    else if (x.datum <= week) push('komend', { ...base, reden: 'Gepland voor ' + fmtDate(x.datum) + '.' });
+  });
+  S.projecten.filter(p => p.fase !== 'afgerond').forEach(p => {
+    const ctx = [klantNaam(p.klantId), p.naam].filter(Boolean).join(' · '); const open = 'project:' + p.id;
+    if (p.deadline && p.deadline < t) push('aandacht', { soort: 'project', ctx, titel: 'Deadline verstreken', datum: p.deadline, ernst: 'bad', reden: 'Deadline was ' + fmtDate(p.deadline) + '.', open, knop: 'Open het project' });
+    if (p.blokkade && p.blokkadeDatum && p.blokkadeDatum <= t) push('aandacht', { soort: 'project', ctx, titel: 'Blokkade opvolgen: ' + p.blokkade, datum: p.blokkadeDatum, ernst: 'warn', reden: p.blokkadeDatum === t ? 'Opvolgen staat voor vandaag.' : 'Opvolgen stond voor ' + fmtDate(p.blokkadeDatum) + '.', open, knop: 'Open het project' });
+    if (p.actie && p.actieDatum) {
+      if (p.actieDatum < t) push('aandacht', { soort: 'project', ctx, titel: p.actie, datum: p.actieDatum, ernst: 'bad', reden: 'Volgende actie moest ' + rel(p.actieDatum) + ' af zijn.', open, knop: 'Open het project' });
+      else if (p.actieDatum === t) push('vandaag', { soort: 'project', ctx, titel: p.actie, datum: p.actieDatum, reden: 'Volgende actie voor vandaag.', open, knop: 'Open het project' });
+      else if (p.actieDatum <= week) push('komend', { soort: 'project', ctx, titel: p.actie, datum: p.actieDatum, reden: 'Volgende actie.', open, knop: 'Open het project' });
+    }
+    if (p.mijlpaal && p.mijlpaalDatum && p.mijlpaalDatum >= t && p.mijlpaalDatum <= week) push('komend', { soort: 'project', ctx, titel: p.mijlpaal, datum: p.mijlpaalDatum, ernst: 'acc', reden: 'Mijlpaal ' + rel(p.mijlpaalDatum) + '.', open, knop: 'Open de mijlpaal' });
+    if (p.deadline && p.deadline >= t && p.deadline <= week) push('komend', { soort: 'project', ctx, titel: 'Deadline project', datum: p.deadline, ernst: 'warn', reden: 'Deadline ' + rel(p.deadline) + '.', open, knop: 'Open het project' });
+  });
+  S.leads.filter(l => OPEN_FASEN.includes(l.fase) && l.opvolgdatum).forEach(l => {
+    const base = { soort: 'lead', ctx: l.bedrijf + (l.contact ? ' · ' + l.contact : ''), titel: l.actie || 'Opvolgen', datum: l.opvolgdatum, open: 'lead:' + l.id, knop: 'Open de lead' };
+    if (l.opvolgdatum < t) push('aandacht', { ...base, ernst: 'warn', reden: 'Opvolging stond voor ' + fmtDate(l.opvolgdatum) + '.' });
+    else if (l.opvolgdatum <= week) push('opvolgen', { ...base, reden: l.opvolgdatum === t ? 'Vandaag gepland.' : 'Gepland voor ' + fmtDate(l.opvolgdatum) + '.' });
+  });
+  const fin = finSamenvatting();
+  if (fin && fin.laat) push('aandacht', { soort: 'fin', ctx: 'Boekhouding', titel: fin.laat + (fin.laat === 1 ? ' factuur' : ' facturen') + ' over de vervaldatum', datum: '0000', ernst: 'bad', reden: money(fin.bedragLaat) + ' staat open na de vervaldatum.', open: 'financien', knop: 'Bekijk financiën' });
+  const sortD = (a, b) => (a.datum || '').localeCompare(b.datum || '');
+  A.aandacht.sort((a, b) => (a.ernst === 'bad' ? 0 : 1) - (b.ernst === 'bad' ? 0 : 1) || sortD(a, b));
+  A.vandaag.sort(sortD); A.komend.sort(sortD); A.opvolgen.sort(sortD);
+  return A;
+}
+
+/* ========== Shell ========== */
+const VIEWS = [
+  ['vandaag', 'Vandaag'], ['sales', 'Sales'], ['klanten', 'Klanten'], ['projecten', 'Projecten'],
+  ['automatiseringen', 'Automatiseringen'], ['financien', 'Financiën'], ['instellingen', 'Instellingen']
+];
+const huidig = () => { const h = (location.hash || '').slice(1); return VIEWS.some(v => v[0] === h) ? h : 'vandaag'; };
+function render() {
+  renderSide();
+  const v = huidig();
+  const fn = { vandaag: viewVandaag, sales: viewSales, klanten: viewKlanten, projecten: viewProjecten, automatiseringen: viewAuto, financien: viewFinancien, instellingen: viewInstellingen }[v];
+  $('#main').innerHTML = notities() + fn();
+  document.title = (S.instellingen.studio ? S.instellingen.studio + ' · ' : '') + 'Studio';
+}
+function opslagStatus() {
+  const s = Store.status, naam = Store.dir ? esc(Store.dir.name) : '';
+  if (s === 'connected') return [Store.pending ? 'warn' : 'ok', Store.pending ? 'Bezig met opslaan…' : 'Opgeslagen in map', `<span class="mono">${naam}</span>${Store.lastWrite ? ' · ' + Store.lastWrite.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }) : ''}`, ''];
+  if (s === 'needs-permission') return ['warn', 'Map opnieuw openen', `Geef toestemming om in <span class="mono">${naam}</span> op te slaan.`, '<button class="btn sm pri" data-act="reconnect">Toestemming geven</button>'];
+  if (s === 'none') return ['bad', 'Nog geen opslagmap', 'Gegevens staan nu alleen in deze browser.', '<a class="btn sm pri" href="boekhouding.html#instellingen" data-bk>Map kiezen</a>'];
+  if (s === 'unsupported') return ['bad', 'Alleen in deze browser', 'Gebruik Chrome of Edge om in een map op te slaan.', ''];
+  if (s === 'error') return ['bad', 'Opslaan in map mislukt', esc(Store.error || ''), '<button class="btn sm" data-act="reconnect">Opnieuw proberen</button>'];
+  return ['', 'Laden…', '', ''];
+}
+function renderSide() {
+  const v = huidig(); const n = werklijst().aandacht.length; const st = opslagStatus();
+  $('#side').innerHTML = `
+    <div class="brand"><b>${esc(S.instellingen.studio || 'Mijn automation studio')}</b><small>Studio</small></div>
+    ${VIEWS.slice(0, 6).map(([k, l]) => `<a class="nav ${v === k ? 'on' : ''}" href="#${k}">${l}${k === 'vandaag' && n ? `<span class="cnt" aria-label="${n} punten vragen aandacht">${n}</span>` : ''}</a>`).join('')}
+    <div class="navsep"></div>
+    <a class="nav" href="boekhouding.html" data-bk>Boekhouding</a>
+    <a class="nav ${v === 'instellingen' ? 'on' : ''}" href="#instellingen">Instellingen</a>
+    <div class="spacer"></div>
+    <div class="store ${st[0]}"><b><span class="dot"></span>${st[1]}</b>${st[2]}${st[3] ? `<div style="margin-top:8px">${st[3]}</div>` : ''}</div>`;
+}
+function notities() {
+  let h = '';
+  if (Store.status === 'none' && heeftGegevens()) h += `<div class="banner warn"><span class="grow">Je gegevens staan nu alleen in deze browser. Kies in Boekhouding een opslagmap (bijv. in iCloud Drive). Het dashboard slaat dan automatisch op in dezelfde map.</span><a class="btn sm" href="boekhouding.html#instellingen" data-bk>Map kiezen</a></div>`;
+  if (Store.status === 'needs-permission') h += `<div class="banner warn"><span class="grow">De browser vraagt opnieuw toestemming om in je opslagmap op te slaan. Wijzigingen staan zolang alleen in deze browser.</span><button class="btn sm" data-act="reconnect">Toestemming geven</button></div>`;
+  if (Store.status === 'error') h += `<div class="banner bad"><span class="grow">Opslaan in je map lukte niet: ${esc(Store.error || 'onbekende fout')}. Je wijzigingen staan wel in deze browser.</span><button class="btn sm" data-act="reconnect">Opnieuw proberen</button></div>`;
+  if (['leads', 'klanten', 'projecten', 'automatiseringen', 'taken'].some(k => S[k].some(x => x.voorbeeld)))
+    h += `<div class="banner"><span class="grow">Je ziet nu ook <b>voorbeeldgegevens</b> met fictieve klanten. Ze zijn bedoeld om rond te kijken.</span><button class="btn sm" data-act="wisVoorbeeld">Voorbeelden verwijderen</button></div>`;
+  return h;
+}
+const pill = (t, cls = '') => `<span class="pill ${cls}">${esc(t)}</span>`;
+const datumCel = (d, laatAls = true) => d ? `<span class="when ${laatAls && d < today() ? 'late' : ''}" title="${esc(rel(d))}">${esc(fmtDate(d))}</span>` : '<span class="faint">—</span>';
+
+/* ========== Vandaag ========== */
+function itemHtml(it) {
+  const chk = it.soort === 'taak' ? `<input type="checkbox" class="chk" data-done="${it.id}" aria-label="Markeer ${esc(it.titel)} als klaar">` : '';
+  const when = it.datum && it.datum !== '0000' ? `<span class="when ${it.datum < today() ? 'late' : ''}">${esc(rel(it.datum))}</span>` : '';
+  return `<li class="item ${it.ernst ? 'sev-' + it.ernst : ''}">${chk}<div class="main"><div class="ctx">${esc(it.ctx)}</div><div class="t">${esc(it.titel)}</div><div class="r">${esc(it.reden)}</div></div>
+    <div class="side-r">${when}<button class="btn sm" data-open="${esc(it.open)}">${esc(it.knop)}</button></div></li>`;
+}
+function blok(titel, items, leeg, extra = '') {
+  return `<section class="card"><div class="card-h"><h2>${titel}</h2>${extra}</div>${items.length ? `<ul class="items">${items.map(itemHtml).join('')}</ul>` : `<p class="quiet">${leeg}</p>`}</section>`;
+}
+function startLijst() {
+  const echt = k => S[k].filter(x => !x.voorbeeld);
+  return [
+    [!!S.instellingen.studio, 'Geef je studio een naam', 'Instellingen', 'nav:instellingen'],
+    [echt('leads').length > 0, 'Leg je eerste lead vast: iemand die je wilt spreken over automatiseren', 'Lead toevoegen', 'new:lead'],
+    [echt('automatiseringen').length >= 3, 'Schrijf drie ideeën op voor automatiseringen die je wilt aanbieden (' + Math.min(3, echt('automatiseringen').length) + '/3)', 'Idee toevoegen', 'new:automatisering'],
+    [Store.status === 'connected', 'Kies een opslagmap (bijv. in iCloud Drive) voor dashboard en boekhouding', 'Map kiezen', 'bk:instellingen'],
+    [!!(FIN && FIN.bedrijf), 'Vul je bedrijfsgegevens in bij Boekhouding (naam, KvK, btw-id, IBAN)', 'Boekhouding', 'bk:instellingen']
+  ];
+}
+function viewVandaag() {
+  const A = werklijst(); const t = today(); const d = new Date();
+  const actief = S.projecten.filter(p => p.fase !== 'afgerond');
+  const openLeads = S.leads.filter(l => OPEN_FASEN.includes(l.fase));
+  const live = S.automatiseringen.filter(a => a.status === 'live').length;
+  const ideeen = S.automatiseringen.filter(a => a.status === 'idee').length;
+  const fin = finSamenvatting();
+  const start = startLijst(); const startKlaar = start.filter(s => s[0]).length;
+  const toonStart = !S.instellingen.startVerborgen && startKlaar < start.length;
+  return `
+  <div class="head"><div><h1>Vandaag</h1><div class="sub">${['Zondag', 'Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag'][d.getDay()]} ${d.getDate()} ${['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'][d.getMonth()]}. Wat vraagt nu je aandacht?</div></div>
+    <div class="row"><button class="btn" data-new="lead">Nieuwe lead</button><button class="btn pri" data-new="taak">Nieuwe taak</button></div></div>
+  <div class="grid g4" style="margin-bottom:14px">
+    <a class="card stat" href="#sales" style="text-decoration:none;color:inherit"><div class="l">Open leads</div><div class="v">${openLeads.length}</div><div class="s">${openLeads.length ? money0(openLeads.reduce((s, l) => s + num(l.waarde), 0)) + ' verwachte waarde' : 'nog niemand in gesprek'}</div></a>
+    <a class="card stat" href="#projecten" style="text-decoration:none;color:inherit"><div class="l">Actieve projecten</div><div class="v">${actief.length}</div><div class="s">${actief.filter(p => p.blokkade).length ? actief.filter(p => p.blokkade).length + ' met blokkade' : 'geen blokkades'}</div></a>
+    <a class="card stat" href="#automatiseringen" style="text-decoration:none;color:inherit"><div class="l">Automatiseringen live</div><div class="v">${live}</div><div class="s">${ideeen} ${ideeen === 1 ? 'idee' : 'ideeën'} op de plank</div></a>
+    <a class="card stat" href="#financien" style="text-decoration:none;color:inherit"><div class="l">Openstaande facturen</div><div class="v">${fin ? money0(fin.bedrag) : '—'}</div><div class="s">${fin ? fin.aantal + ' open' + (fin.laat ? ', <span class="neg">' + fin.laat + ' te laat</span>' : '') : 'nog geen facturen'}</div></a>
+  </div>
+  ${toonStart ? `<section class="card" style="margin-bottom:14px"><div class="card-h"><h2>Aan de slag (${startKlaar}/${start.length})</h2><button class="btn sm ghost" data-act="verbergStart">Verbergen</button></div>
+    <ul class="check-list">${start.map(([ok, txt, knop, doel]) => `<li class="${ok ? 'done' : ''}"><span class="mark" aria-hidden="true">${ok ? '✓' : ''}</span><span class="t grow">${esc(txt)}</span>${ok ? '' : `<button class="btn sm" data-go="${doel}">${esc(knop)}</button>`}</li>`).join('')}</ul>
+    ${heeftGegevens() ? '' : '<p class="hint" style="margin:10px 0 0">Wil je eerst zien hoe een gevulde week eruitziet? <button class="btn sm ghost" data-act="laadVoorbeeld">Voorbeeldgegevens laden</button></p>'}</section>` : ''}
+  <div class="grid" style="gap:14px">
+    ${blok('Direct aandacht nodig', A.aandacht, 'Niets achterstallig. Taken, opvolgingen en deadlines lopen op schema.')}
+    <div class="grid g2">
+      ${blok('Vandaag doen', A.vandaag, 'Niets gepland voor vandaag.')}
+      ${blok('Komende 7 dagen', A.komend, 'Geen taken, mijlpalen of deadlines in de komende week.')}
+    </div>
+    ${blok('Opvolgen', A.opvolgen, openLeads.length ? 'Geen opvolging gepland voor deze week. Geef je open leads een opvolgdatum.' : 'Nog geen leads om op te volgen.', '<a class="btn sm ghost" href="#sales">Alle leads</a>')}
+  </div>`;
+}
+
+/* ========== Sales ========== */
+function viewSales() {
+  const f = UI.salesFilter;
+  let ls = S.leads.slice();
+  if (f === 'open') ls = ls.filter(l => OPEN_FASEN.includes(l.fase)); else if (f !== 'alle') ls = ls.filter(l => l.fase === f);
+  ls.sort((a, b) => (a.opvolgdatum || '9999').localeCompare(b.opvolgdatum || '9999'));
+  const perFase = OPEN_FASEN.map(k => { const x = S.leads.filter(l => l.fase === k); return [k, x.length, x.reduce((s, l) => s + num(l.waarde), 0)]; });
+  const max = Math.max(1, ...perFase.map(p => p[2]));
+  const gewonnen = S.leads.filter(l => l.fase === 'gewonnen');
+  return `
+  <div class="head"><div><h1>Sales</h1><div class="sub">Iedereen met wie je praat over een opdracht. Geef elke open lead een volgende actie en een opvolgdatum, dan verschijnt hij op tijd op Vandaag.</div></div>
+    <button class="btn pri" data-new="lead">Nieuwe lead</button></div>
+  <div class="grid g4" style="margin-bottom:14px">
+    ${perFase.map(([k, n, w]) => `<div class="card stat"><div class="l">${label(LEAD_FASEN, k)}</div><div class="v">${n}</div><div class="s">${money0(w)} verwacht</div><div class="stagebar"><span style="width:${Math.round(w / max * 100)}%"></span></div></div>`).join('')}
+    <div class="card stat"><div class="l">Gewonnen</div><div class="v">${gewonnen.length}</div><div class="s">${money0(gewonnen.reduce((s, l) => s + num(l.waarde), 0))} totaal</div></div>
+  </div>
+  <div class="toolbar"><div class="chips" role="group" aria-label="Filter op fase">${[['open', 'Open'], ['gewonnen', 'Gewonnen'], ['verloren', 'Verloren'], ['alle', 'Alle']].map(([k, l]) => `<button class="chip ${f === k ? 'on' : ''}" data-ui="salesFilter=${k}">${l}</button>`).join('')}</div></div>
+  <div class="tablewrap"><table><thead><tr><th>Lead</th><th>Fase</th><th class="num">Verwachte waarde</th><th>Volgende actie</th><th>Opvolgen</th></tr></thead><tbody>
+  ${ls.map(l => `<tr class="click" data-open="lead:${l.id}"><td><b style="font-weight:600">${esc(l.bedrijf)}</b>${l.contact ? `<br><span class="faint">${esc(l.contact)}</span>` : ''}</td>
+    <td>${pill(label(LEAD_FASEN, l.fase), LEAD_CLS[l.fase])}</td><td class="num">${l.waarde ? money0(num(l.waarde)) : '<span class="faint">—</span>'}</td>
+    <td>${esc(l.actie) || '<span class="faint">Nog geen actie</span>'}</td><td>${OPEN_FASEN.includes(l.fase) ? datumCel(l.opvolgdatum) : '<span class="faint">—</span>'}</td></tr>`).join('')
+    || `<tr><td colspan="5" class="empty"><b>${f === 'open' ? 'Nog geen open leads' : 'Niets gevonden'}</b>${f === 'open' ? 'Denk aan je netwerk: wie loopt tegen handwerk aan dat je zou kunnen automatiseren?' : ''}</td></tr>`}
+  </tbody></table></div>`;
+}
+
+/* ========== Klanten ========== */
+function viewKlanten() {
+  const ks = S.klanten.slice().sort((a, b) => a.naam.localeCompare(b.naam));
+  return `
+  <div class="head"><div><h1>Klanten</h1><div class="sub">Per klant zie je wat er draait, wat je moet opleveren en welke afspraken over beheer gelden.</div></div>
+    <button class="btn pri" data-new="klant">Nieuwe klant</button></div>
+  <div class="tablewrap"><table><thead><tr><th>Klant</th><th>Beheer</th><th class="num">Actieve projecten</th><th class="num">Automatiseringen</th><th class="num">Open taken</th></tr></thead><tbody>
+  ${ks.map(k => {
+    const pr = S.projecten.filter(p => p.klantId === k.id && p.fase !== 'afgerond').length;
+    const au = S.automatiseringen.filter(a => a.voor === k.id);
+    const tk = S.taken.filter(t => !t.klaar && (t.koppeling === 'klant:' + k.id || S.projecten.some(p => p.klantId === k.id && t.koppeling === 'project:' + p.id))).length;
+    return `<tr class="click" data-open="klant:${k.id}"><td><b style="font-weight:600">${esc(k.naam)}</b>${k.contact ? `<br><span class="faint">${esc(k.contact)}</span>` : ''}</td>
+      <td>${k.beheer === 'beheer' ? pill('Doorlopend beheer', 'acc') : k.beheer === 'geen' ? pill('Geen beheer') : '<span class="faint">Nog geen afspraken</span>'}</td>
+      <td class="num">${pr}</td><td class="num">${au.length}${au.filter(a => a.status === 'live').length ? ` <span class="faint">(${au.filter(a => a.status === 'live').length} live)</span>` : ''}</td><td class="num">${tk}</td></tr>`;
+  }).join('') || `<tr><td colspan="5" class="empty"><b>Nog geen klanten</b>Een lead die je wint, zet je met één knop om in een klant. Je kunt hier ook direct een klant toevoegen.</td></tr>`}
+  </tbody></table></div>`;
+}
+
+/* ========== Projecten ========== */
+function fasebalk(f) { const i = PROJECT_FASEN.findIndex(x => x[0] === f); return `<div class="phases" aria-hidden="true">${PROJECT_FASEN.map((_, j) => `<i class="${j <= i ? 'on' : ''}"></i>`).join('')}</div>`; }
+function viewProjecten() {
+  const f = UI.projFilter;
+  let ps = S.projecten.slice();
+  if (f === 'actief') ps = ps.filter(p => p.fase !== 'afgerond'); else if (f === 'afgerond') ps = ps.filter(p => p.fase === 'afgerond');
+  if (UI.projKlant) ps = ps.filter(p => p.klantId === UI.projKlant);
+  ps.sort((a, b) => (a.deadline || '9999').localeCompare(b.deadline || '9999'));
+  return `
+  <div class="head"><div><h1>Projecten</h1><div class="sub">Wat je moet opleveren. Houd per project één concrete volgende actie bij. Een blokkade staat los van de fase, zodat <i>wacht op testaccount</i> zichtbaar blijft.</div></div>
+    <button class="btn pri" data-new="project">Nieuw project</button></div>
+  <div class="toolbar"><div class="chips" role="group" aria-label="Filter op status">${[['actief', 'Actief'], ['afgerond', 'Afgerond'], ['alle', 'Alle']].map(([k, l]) => `<button class="chip ${f === k ? 'on' : ''}" data-ui="projFilter=${k}">${l}</button>`).join('')}</div>
+    ${S.klanten.length ? `<label class="row" for="pk"><span class="muted">Klant</span><select id="pk" data-uisel="projKlant"><option value="">Alle klanten</option>${S.klanten.map(k => `<option value="${k.id}" ${UI.projKlant === k.id ? 'selected' : ''}>${esc(k.naam)}</option>`).join('')}</select></label>` : ''}</div>
+  <div class="tablewrap"><table><thead><tr><th style="min-width:200px">Project</th><th>Fase</th><th>Eerstvolgende mijlpaal</th><th>Deadline</th><th>Volgende actie</th></tr></thead><tbody>
+  ${ps.map(p => `<tr class="click" data-open="project:${p.id}"><td><b style="font-weight:600">${esc(p.naam)}</b><br><span class="faint">${esc(klantNaam(p.klantId) || 'Geen klant')}</span>${p.blokkade ? `<div style="margin-top:4px">${pill('Blokkade: ' + p.blokkade, 'warn')}</div>` : ''}</td>
+    <td style="min-width:110px">${esc(label(PROJECT_FASEN, p.fase))}${fasebalk(p.fase)}</td>
+    <td>${p.mijlpaal ? esc(p.mijlpaal) + '<br>' + datumCel(p.mijlpaalDatum) : '<span class="faint">—</span>'}</td>
+    <td>${p.fase === 'afgerond' ? '<span class="faint">—</span>' : datumCel(p.deadline)}</td>
+    <td>${p.actie ? esc(p.actie) + '<br>' + datumCel(p.actieDatum) : '<span class="faint">Nog geen actie</span>'}</td></tr>`).join('')
+    || `<tr><td colspan="5" class="empty"><b>${f === 'actief' ? 'Geen actieve projecten' : 'Niets gevonden'}</b>Je eerste project ontstaat meestal uit een gewonnen lead.</td></tr>`}
+  </tbody></table></div>`;
+}
+
+/* ========== Automatiseringen ========== */
+function viewAuto() {
+  let as = S.automatiseringen.slice();
+  if (UI.autoStatus) as = as.filter(a => a.status === UI.autoStatus);
+  if (UI.autoVoor) as = as.filter(a => (UI.autoVoor === 'geen' ? !a.voor : a.voor === UI.autoVoor));
+  const volg = ['live', 'bouw', 'gepauzeerd', 'idee'];
+  as.sort((a, b) => volg.indexOf(a.status) - volg.indexOf(b.status) || a.naam.localeCompare(b.naam));
+  const tel = k => S.automatiseringen.filter(a => a.status === k).length;
+  return `
+  <div class="head"><div><h1>Automatiseringen</h1><div class="sub">Het register van alles wat je bouwt en beheert. Leg ook ideeën vast voor wat je wilt aanbieden, nog zonder klant. Zo zie je welke automatiseringen je vaker tegenkomt en welk platform je het meest gebruikt.</div></div>
+    <button class="btn pri" data-new="automatisering">Nieuwe automatisering</button></div>
+  <div class="toolbar"><div class="chips" role="group" aria-label="Filter op status"><button class="chip ${!UI.autoStatus ? 'on' : ''}" data-ui="autoStatus=">Alle (${S.automatiseringen.length})</button>${AUTO_STATUS.map(([k, l]) => `<button class="chip ${UI.autoStatus === k ? 'on' : ''}" data-ui="autoStatus=${k}">${l} (${tel(k)})</button>`).join('')}</div>
+    <label class="row" for="av"><span class="muted">Voor</span><select id="av" data-uisel="autoVoor"><option value="">Iedereen</option><option value="geen" ${UI.autoVoor === 'geen' ? 'selected' : ''}>Nog geen klant</option><option value="studio" ${UI.autoVoor === 'studio' ? 'selected' : ''}>Eigen studio</option>${S.klanten.map(k => `<option value="${k.id}" ${UI.autoVoor === k.id ? 'selected' : ''}>${esc(k.naam)}</option>`).join('')}</select></label></div>
+  <div class="tablewrap"><table><thead><tr><th style="min-width:220px">Automatisering</th><th>Voor</th><th>Platform</th><th>Status</th><th>Na oplevering</th></tr></thead><tbody>
+  ${as.map(a => `<tr class="click" data-open="automatisering:${a.id}"><td><b style="font-weight:600">${esc(a.naam)}</b>${a.beschrijving ? `<br><span class="faint">${esc(a.beschrijving.length > 110 ? a.beschrijving.slice(0, 108) + '…' : a.beschrijving)}</span>` : ''}</td>
+    <td>${esc(voorLabel(a))}</td><td>${esc(a.platform) || '<span class="faint">Nog niet gekozen</span>'}</td><td>${pill(label(AUTO_STATUS, a.status), STATUS_CLS[a.status])}</td>
+    <td>${a.voor === 'studio' ? '<span class="faint">Intern</span>' : esc(label(AUTO_BEHEER, a.beheer))}</td></tr>`).join('')
+    || `<tr><td colspan="5" class="empty"><b>Nog niets geregistreerd</b>Begin met ideeën: welke handmatige klus zie je bij bedrijven vaak terugkomen? Denk aan offerteaanvragen, facturen inlezen of afspraken inplannen.</td></tr>`}
+  </tbody></table></div>`;
+}
+
+/* ========== Financiën ========== */
+function viewFinancien() {
+  const fin = finSamenvatting();
+  return `
+  <div class="head"><div><h1>Financiën</h1><div class="sub">Rechtstreeks uit je boekhouding. Facturen maken, betalingen verwerken en de btw doe je in Boekhouding.</div></div>
+    <a class="btn pri" href="boekhouding.html" data-bk>Open boekhouding</a></div>
+  ${fin ? `<section class="card">
+      <div class="card-h"><h2>Openstaande facturen</h2><span class="hint">Laatste wijziging in je boekhouding: ${esc(fmtMoment(fin.bijgewerkt))}</span></div>
+      <div class="grid g3" style="gap:12px">
+        <div><div class="muted" style="font-size:12px">Totaal openstaand</div><div class="big">${money(fin.bedrag)}</div><div class="hint">incl. btw</div></div>
+        <div><div class="muted" style="font-size:12px">Openstaande facturen</div><div class="big">${fin.aantal}</div></div>
+        <div><div class="muted" style="font-size:12px">Te laat</div><div class="big ${fin.laat ? 'neg' : ''}">${fin.laat}</div><div class="hint">${fin.laat ? money(fin.bedragLaat) : 'alles binnen termijn'}</div></div>
+      </div>
+      ${fin.laat || fin.concept || fin.openTx ? `<div class="row" style="margin-top:16px">
+        ${fin.laat ? `<a class="btn sm" href="boekhouding.html#inkomsten" data-bk>Te late facturen bekijken</a>` : ''}
+        ${fin.concept ? `<a class="btn sm" href="boekhouding.html#inkomsten" data-bk>${fin.concept} conceptfactu${fin.concept === 1 ? 'ur' : 'ren'} afmaken</a>` : ''}
+        ${fin.openTx ? `<a class="btn sm" href="boekhouding.html#bank" data-bk>${fin.openTx} banktransactie${fin.openTx === 1 ? '' : 's'} verwerken</a>` : ''}</div>` : ''}
+      <p class="hint" style="margin:14px 0 0">Dezelfde berekening als het scherm Overzicht in je boekhouding: definitieve facturen die nog niet betaald zijn, inclusief btw. <i>Te laat</i> betekent dat de vervaldatum voorbij is.</p>
+    </section>`
+  : `<section class="card empty"><b>Nog geen cijfers beschikbaar</b>Je boekhouding is nog leeg. Vul daar je bedrijfsgegevens in en maak je eerste factuur. Daarna zie je hier het openstaande bedrag.<br><br><a class="btn pri" href="boekhouding.html" data-bk>Open boekhouding</a></section>`}`;
+}
+
+/* ========== Instellingen ========== */
+function viewInstellingen() {
+  const I = S.instellingen; const s = Store.status;
+  return `
+  <div class="head"><div><h1>Instellingen</h1><div class="sub">Wijzigingen worden direct opgeslagen.</div></div></div>
+  <div class="grid" style="gap:14px">
+    <section class="card"><div class="card-h"><h2>Studio</h2></div>
+      <label class="f" for="s_studio" style="max-width:420px"><span>Naam van je studio</span><input type="text" id="s_studio" data-set="studio" value="${esc(I.studio)}" placeholder="bijv. Flowwerk"></label>
+    </section>
+    <section class="card"><div class="card-h"><h2>Opslagmap</h2></div>
+      <div class="kv" style="margin-bottom:12px">
+        <div>Map</div><div>${Store.dir ? `<span class="mono">${esc(Store.dir.name)}</span> ${s === 'connected' ? pill('verbonden', 'ok') : pill('geen toestemming', 'warn')}` : '<span class="neg">Nog geen map gekozen</span>'}</div>
+        <div>In de map</div><div class="muted"><span class="mono">dashboard.json</span> (dit dashboard), <span class="mono">administratie.json</span> (je boekhouding), <span class="mono">backups/</span> (automatisch één kopie per dag van allebei)</div>
+        <div>Inhoud</div><div>${S.leads.length} leads, ${S.klanten.length} klanten, ${S.projecten.length} projecten, ${S.automatiseringen.length} automatiseringen, ${S.taken.length} taken</div>
+      </div>
+      ${s === 'unsupported' ? '<div class="banner bad">Deze browser kan niet in een map opslaan. Gebruik Google Chrome of Microsoft Edge.</div>' : ''}
+      <div class="row">
+        ${s === 'needs-permission' || s === 'error' ? '<button class="btn pri" data-act="reconnect">Toestemming geven</button>' : ''}
+        ${s !== 'unsupported' ? `<a class="btn ${s === 'none' ? 'pri' : ''}" href="boekhouding.html#instellingen" data-bk>${Store.dir ? 'Andere map kiezen in Boekhouding' : 'Map kiezen in Boekhouding'}</a>` : ''}
+      </div>
+      <p class="hint" style="margin:10px 0 0">Dashboard en boekhouding gebruiken dezelfde map. Die kies je één keer bij Boekhouding → Instellingen.</p>
+    </section>
+    <section class="card"><div class="card-h"><h2>Back-up</h2></div>
+      <div class="row">
+        <button class="btn" data-act="downloadBackup">Back-up downloaden (.json)</button>
+        <label class="btn" for="restoreFile">Back-up terugzetten…<input type="file" id="restoreFile" accept=".json,application/json" hidden></label>
+        <button class="btn" data-act="plakBackup">Back-up plakken…</button>
+      </div>
+      <p class="hint" style="margin:10px 0 0">Gegevens uit de online versie van het dashboard overzetten? Kies daar bij Instellingen <b>Back-up kopiëren (JSON)</b> en plak die hier.</p>
+    </section>
+    <section class="card"><div class="card-h"><h2>Weergave</h2></div>
+      <div class="row">
+        <button class="btn" data-act="toggleStart">${I.startVerborgen ? 'Lijst Aan de slag weer tonen' : 'Lijst Aan de slag verbergen'}</button>
+        ${['leads', 'klanten', 'projecten', 'automatiseringen', 'taken'].some(k => S[k].some(x => x.voorbeeld)) ? '<button class="btn" data-act="wisVoorbeeld">Voorbeeldgegevens verwijderen</button>' : '<button class="btn" data-act="laadVoorbeeld">Voorbeeldgegevens laden</button>'}
+      </div></section>
+    <section class="card"><div class="card-h"><h2>Alles wissen</h2></div>
+      <p class="hint" style="margin:-4px 0 10px">Verwijdert alle leads, klanten, projecten, automatiseringen en taken uit het dashboard. Je boekhouding blijft ongemoeid.</p>
+      <button class="btn danger" data-act="wisAlles">Dashboardgegevens wissen…</button></section>
+  </div>`;
+}
+
+/* ========== Modals ========== */
+const modals = [];
+function openModal(titel, { wide = false } = {}) {
+  const ov = document.createElement('div'); ov.className = 'ov';
+  ov.innerHTML = `<div class="modal ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-label="${esc(titel)}"><div class="mh"><h2>${esc(titel)}</h2><button class="x" aria-label="Sluiten">×</button></div><div class="mb"></div><div class="mf"></div></div>`;
+  document.body.appendChild(ov);
+  const m = { el: ov, body: $('.mb', ov), foot: $('.mf', ov), close: () => { ov.remove(); const i = modals.indexOf(m); if (i > -1) modals.splice(i, 1); } };
+  ov.addEventListener('mousedown', e => { if (e.target === ov) m.close(); });
+  $('.x', ov).onclick = m.close;
+  modals.push(m);
+  return m;
+}
+const closeAll = () => modals.slice().forEach(m => m.close());
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && modals.length) modals[modals.length - 1].close(); });
+function vraag(titel, tekst, knop, gevaarlijk = true, typ = '') {
+  return new Promise(res => {
+    const m = openModal(titel);
+    m.body.innerHTML = `<p style="margin:0">${tekst}</p>${typ ? `<label class="f" for="vraagTyp" style="margin-top:12px"><span>Typ ${esc(typ)} om te bevestigen</span><input type="text" id="vraagTyp" autocomplete="off"></label>` : ''}`;
+    m.foot.innerHTML = `<button class="btn" data-x>Annuleren</button><button class="btn ${gevaarlijk ? 'danger' : 'pri'}" data-ok>${esc(knop)}</button>`;
+    const sluit = v => { m.close(); res(v); };
+    $('[data-x]', m.foot).onclick = () => sluit(false);
+    $('.x', m.el).onclick = () => sluit(false);
+    $('[data-ok]', m.foot).onclick = () => { if (typ && $('#vraagTyp', m.body).value.trim() !== typ) { $('#vraagTyp', m.body).focus(); return; } sluit(true); };
+    setTimeout(() => ($('#vraagTyp', m.body) || $('[data-ok]', m.foot)).focus(), 30);
+  });
+}
+
+/* ---- formulieren ---- */
+function optiesHtml(opts, v) {
+  return opts.map(o => o.group ? `<optgroup label="${esc(o.group)}">${optiesHtml(o.items, v)}</optgroup>` : `<option value="${esc(o[0])}" ${String(v ?? '') === String(o[0]) ? 'selected' : ''}>${esc(o[1])}</option>`).join('');
+}
+function veldHtml(f, v) {
+  const id = 'fld_' + f.k; const cls = f.full ? 'full' : '';
+  const lab = `<span>${esc(f.l)}${f.req ? ' *' : ''}</span>`;
+  if (f.t === 'select') return `<label class="f ${cls}" for="${id}">${lab}<select id="${id}" name="${f.k}">${optiesHtml(f.o, v)}</select></label>`;
+  if (f.t === 'textarea') return `<label class="f ${cls}" for="${id}">${lab}<textarea id="${id}" name="${f.k}" placeholder="${esc(f.ph || '')}">${esc(v)}</textarea></label>`;
+  const list = f.list ? `<datalist id="${id}_l">${f.list.map(x => `<option value="${esc(x)}">`).join('')}</datalist>` : '';
+  return `<label class="f ${cls}" for="${id}">${lab}<input type="${f.t || 'text'}" id="${id}" name="${f.k}" value="${esc(v)}" placeholder="${esc(f.ph || '')}" ${f.list ? `list="${id}_l"` : ''} ${f.t === 'number' ? 'step="any" min="0"' : ''}>${list}</label>`;
+}
+const leesVeld = (el, f) => { const x = el.querySelector(`[name="${f.k}"]`); return x ? (f.t === 'number' ? (x.value === '' ? '' : num(x.value)) : x.value.trim()) : undefined; };
+
+const klantOpts = (leegLabel = 'Geen klant') => [['', leegLabel], ...S.klanten.slice().sort((a, b) => a.naam.localeCompare(b.naam)).map(k => [k.id, k.naam])];
+function koppelOpts() {
+  const o = [['', 'Losse taak']];
+  const g = (group, items) => items.length && o.push({ group, items });
+  g('Projecten', S.projecten.filter(p => p.fase !== 'afgerond').map(p => ['project:' + p.id, [klantNaam(p.klantId), p.naam].filter(Boolean).join(' · ')]));
+  g('Klanten', S.klanten.map(k => ['klant:' + k.id, k.naam]));
+  g('Leads', S.leads.filter(l => OPEN_FASEN.includes(l.fase)).map(l => ['lead:' + l.id, l.bedrijf]));
+  g('Automatiseringen', S.automatiseringen.map(a => ['automatisering:' + a.id, a.naam]));
+  return o;
+}
+const SOORTEN = {
+  lead: {
+    coll: 'leads', naam: 'lead', titel: r => r.bedrijf || 'Nieuwe lead', verplicht: 'bedrijf',
+    nieuw: () => ({ bedrijf: '', contact: '', email: '', telefoon: '', bron: '', fase: 'contact', waarde: '', behoefte: '', actie: '', opvolgdatum: addDays(today(), 2), notitie: '' }),
+    velden: () => [
+      { k: 'bedrijf', l: 'Bedrijf of naam', req: true }, { k: 'contact', l: 'Contactpersoon' },
+      { k: 'email', l: 'E-mail', t: 'email' }, { k: 'telefoon', l: 'Telefoon', t: 'tel' },
+      { k: 'fase', l: 'Fase', t: 'select', o: LEAD_FASEN }, { k: 'waarde', l: 'Verwachte opdrachtwaarde (€)', t: 'number' },
+      { k: 'bron', l: 'Hoe kwam je in contact?', list: ['Eigen netwerk', 'LinkedIn', 'Website', 'Doorverwijzing', 'Evenement', 'Koude acquisitie'] },
+      { k: 'opvolgdatum', l: 'Opvolgen op', t: 'date' },
+      { k: 'actie', l: 'Volgende actie', full: true, ph: 'bijv. Offerte nabellen' },
+      { k: 'behoefte', l: 'Wat wil deze lead automatiseren?', t: 'textarea', full: true, ph: 'Welk handwerk kost nu tijd? Welke systemen gebruiken ze?' },
+      { k: 'notitie', l: 'Notitie', t: 'textarea', full: true }
+    ]
+  },
+  klant: {
+    coll: 'klanten', naam: 'klant', titel: r => r.naam || 'Nieuwe klant', verplicht: 'naam',
+    nieuw: () => ({ naam: '', contact: '', email: '', telefoon: '', beheer: '', beheerAfspraak: '', notitie: '' }),
+    velden: () => [
+      { k: 'naam', l: 'Bedrijfsnaam', req: true, full: true }, { k: 'contact', l: 'Contactpersoon' }, { k: 'email', l: 'E-mail', t: 'email' },
+      { k: 'telefoon', l: 'Telefoon', t: 'tel' }, { k: 'beheer', l: 'Beheer', t: 'select', o: KLANT_BEHEER },
+      { k: 'beheerAfspraak', l: 'Afspraken over beheer', t: 'textarea', full: true, ph: 'bijv. reactie binnen één werkdag, 4 uur per maand, maandelijks tarief' },
+      { k: 'notitie', l: 'Notitie', t: 'textarea', full: true }
+    ]
+  },
+  project: {
+    coll: 'projecten', naam: 'project', nieuwWoord: 'Nieuw', titel: r => r.naam || 'Nieuw project', verplicht: 'naam',
+    nieuw: () => ({ naam: '', klantId: '', fase: 'intake', mijlpaal: '', mijlpaalDatum: '', deadline: '', actie: '', actieDatum: '', blokkade: '', blokkadeDatum: '', notitie: '' }),
+    velden: () => [
+      { k: 'naam', l: 'Projectnaam', req: true }, { k: 'klantId', l: 'Klant', t: 'select', o: klantOpts() },
+      { k: 'fase', l: 'Fase', t: 'select', o: PROJECT_FASEN }, { k: 'deadline', l: 'Deadline oplevering', t: 'date' },
+      { k: 'mijlpaal', l: 'Eerstvolgende mijlpaal', ph: 'bijv. Testversie bij klant' }, { k: 'mijlpaalDatum', l: 'Datum mijlpaal', t: 'date' },
+      { k: 'actie', l: 'Volgende actie', ph: 'één concrete stap' }, { k: 'actieDatum', l: 'Datum volgende actie', t: 'date' },
+      { k: 'blokkade', l: 'Blokkade: waar wacht je op?', ph: 'bijv. Wacht op testaccount' }, { k: 'blokkadeDatum', l: 'Blokkade opvolgen op', t: 'date' },
+      { k: 'notitie', l: 'Notitie', t: 'textarea', full: true }
+    ]
+  },
+  automatisering: {
+    coll: 'automatiseringen', naam: 'automatisering', titel: r => r.naam || 'Nieuwe automatisering', verplicht: 'naam',
+    nieuw: () => ({ naam: '', voor: '', platform: '', status: 'idee', beheer: '', projectId: '', link: '', beschrijving: '', notitie: '' }),
+    velden: () => [
+      { k: 'naam', l: 'Naam', req: true, full: true, ph: 'bijv. Offerteaanvragen van website naar CRM' },
+      { k: 'voor', l: 'Voor', t: 'select', o: [['', 'Nog geen klant (idee voor aanbod)'], ['studio', 'Eigen studio'], ...(S.klanten.length ? [{ group: 'Klanten', items: S.klanten.map(k => [k.id, k.naam]) }] : [])] },
+      { k: 'status', l: 'Status', t: 'select', o: AUTO_STATUS },
+      { k: 'platform', l: 'Platform', list: ['n8n', 'Make', 'Zapier', 'Power Automate', 'Google Apps Script', 'Python-script', 'Airtable Automations', 'Nog niet gekozen'] },
+      { k: 'beheer', l: 'Na oplevering', t: 'select', o: AUTO_BEHEER },
+      { k: 'projectId', l: 'Hoort bij project', t: 'select', o: [['', 'Geen project'], ...S.projecten.map(p => [p.id, [klantNaam(p.klantId), p.naam].filter(Boolean).join(' · ')])] },
+      { k: 'link', l: 'Link naar de workflow', t: 'url', ph: 'https://…' },
+      { k: 'beschrijving', l: 'Wat doet hij?', t: 'textarea', full: true, ph: 'Trigger → stappen → resultaat. bijv. Nieuw formulier op website → lead aanmaken in CRM → mail naar verkoper' },
+      { k: 'notitie', l: 'Notitie', t: 'textarea', full: true, ph: 'bijv. waar de logs staan, wie toegang heeft (geen wachtwoorden of API-sleutels)' }
+    ]
+  },
+  taak: {
+    coll: 'taken', naam: 'taak', titel: r => r.titel || 'Nieuwe taak', verplicht: 'titel',
+    nieuw: () => ({ titel: '', datum: today(), koppeling: '', notitie: '', klaar: false }),
+    velden: () => [
+      { k: 'titel', l: 'Taak', req: true, full: true }, { k: 'datum', l: 'Uiterste datum', t: 'date' },
+      { k: 'koppeling', l: 'Hoort bij', t: 'select', o: koppelOpts() }, { k: 'notitie', l: 'Notitie', t: 'textarea', full: true }
+    ]
+  }
+};
+function takenLijst(koppel) {
+  const ts = openTaken(koppel);
+  return `${ts.length ? `<ul class="items">${ts.map(t => `<li class="item"><input type="checkbox" class="chk" data-done="${t.id}" aria-label="Markeer ${esc(t.titel)} als klaar"><div class="main"><div class="t">${esc(t.titel)}</div></div><div class="side-r">${t.datum ? `<span class="when ${t.datum < today() ? 'late' : ''}">${esc(fmtDate(t.datum))}</span>` : ''}<button class="btn sm ghost" data-open="taak:${t.id}">Open</button></div></li>`).join('')}</ul>` : '<p class="quiet">Geen open taken.</p>'}
+    <button class="btn sm" data-new="taak" data-koppel="${koppel}" style="margin-top:6px">+ Taak</button>`;
+}
+function bewerk(soort, rec, preset = {}) {
+  const K = SOORTEN[soort]; const nieuw = !rec;
+  const w = nieuw ? { id: uid(), ...K.nieuw(), ...preset, gemaakt: Date.now() } : clone(rec);
+  const m = openModal(nieuw ? (K.nieuwWoord || 'Nieuwe') + ' ' + K.naam : K.titel(w), { wide: soort !== 'taak' });
+  const velden = K.velden();
+  const koppel = soort + ':' + w.id;
+  let extra = '';
+  if (!nieuw && soort !== 'taak' && soort !== 'klant') extra += `<div class="section"><h3>Open taken</h3><div data-takenbox="${koppel}">${takenLijst(koppel)}</div></div>`;
+  if (!nieuw && soort === 'automatisering' && w.link) extra += `<p style="margin:14px 0 0"><a href="${esc(w.link)}" target="_blank" rel="noopener">Open de workflow op het platform ↗</a></p>`;
+  m.body.innerHTML = `<form class="fg" novalidate>${velden.map(f => veldHtml(f, w[f.k])).join('')}</form>${extra}`;
+  const knoppen = [];
+  if (!nieuw) knoppen.push('<button class="btn danger" data-a="del">Verwijderen</button>');
+  if (!nieuw && soort === 'lead' && OPEN_FASEN.includes(w.fase)) knoppen.push('<button class="btn" data-a="win">Gewonnen: klant aanmaken</button>');
+  knoppen.push('<span class="grow"></span><button class="btn" data-a="x">Annuleren</button><button class="btn pri" data-a="ok">Opslaan</button>');
+  m.foot.innerHTML = knoppen.join('');
+  $('form', m.body).addEventListener('submit', e => { e.preventDefault(); opslaan(); });
+  function lees() { velden.forEach(f => { const v = leesVeld(m.body, f); if (v !== undefined) w[f.k] = v; }); }
+  function opslaan() {
+    lees();
+    if (!String(w[K.verplicht] || '').trim()) { const el = m.body.querySelector(`[name="${K.verplicht}"]`); el.focus(); el.style.borderColor = 'var(--bad)'; return false; }
+    if (soort === 'project' && !w.blokkade) w.blokkadeDatum = '';
+    const lijst = S[K.coll]; const i = lijst.findIndex(x => x.id === w.id);
+    if (i > -1) lijst[i] = w; else lijst.push(w);
+    Store.save(K.coll); m.close(); render(); toast(K.naam[0].toUpperCase() + K.naam.slice(1) + ' opgeslagen');
+    return true;
+  }
+  $$('[data-a]', m.foot).forEach(b => b.onclick = async () => {
+    const a = b.dataset.a;
+    if (a === 'x') return m.close();
+    if (a === 'ok') return opslaan();
+    if (a === 'del') {
+      if (!(await vraag(K.naam[0].toUpperCase() + K.naam.slice(1) + ' verwijderen?', `<b>${esc(K.titel(w))}</b> wordt verwijderd. Gekoppelde taken worden losse taken.`, 'Verwijderen'))) return;
+      verwijder(soort, w.id); m.close(); render(); toast('Verwijderd');
+    }
+    if (a === 'win') {
+      lees();
+      const k = { id: uid(), naam: w.bedrijf, contact: w.contact, email: w.email, telefoon: w.telefoon, beheer: '', beheerAfspraak: '', notitie: w.behoefte ? 'Behoefte bij start: ' + w.behoefte : '', gemaakt: Date.now() };
+      S.klanten.push(k); w.fase = 'gewonnen'; w.klantId = k.id;
+      const i = S.leads.findIndex(x => x.id === w.id); if (i > -1) S.leads[i] = w;
+      Store.save('klanten'); Store.save('leads'); m.close(); render();
+      toast(k.naam + ' is nu klant');
+      bewerk('project', null, { klantId: k.id, naam: '' });
+    }
+  });
+  setTimeout(() => { const f = $('input,select,textarea', m.body); if (f && nieuw) f.focus(); }, 30);
+}
+function verwijder(soort, id) {
+  const K = SOORTEN[soort];
+  S[K.coll] = S[K.coll].filter(x => x.id !== id);
+  const koppel = soort + ':' + id; let tk = false;
+  S.taken.forEach(t => { if (t.koppeling === koppel) { t.koppeling = ''; tk = true; } });
+  if (soort === 'klant') {
+    S.projecten.forEach(p => { if (p.klantId === id) p.klantId = ''; }); S.automatiseringen.forEach(a => { if (a.voor === id) a.voor = ''; });
+    S.leads.forEach(l => { if (l.klantId === id) l.klantId = ''; });
+    Store.save('projecten'); Store.save('automatiseringen'); Store.save('leads');
+  }
+  if (soort === 'project') { S.automatiseringen.forEach(a => { if (a.projectId === id) a.projectId = ''; }); Store.save('automatiseringen'); }
+  Store.save(K.coll); if (tk) Store.save('taken');
+}
+
+/* ---- klantpagina ---- */
+function toonKlant(id) {
+  const k = klant(id); if (!k) return;
+  const m = openModal(k.naam, { wide: true });
+  const draw = () => {
+    const ps = S.projecten.filter(p => p.klantId === id);
+    const as = S.automatiseringen.filter(a => a.voor === id);
+    const ls = S.leads.filter(l => l.klantId === id);
+    const rij = (open, t, s, r) => `<li class="item"><div class="main"><div class="t">${esc(t)}</div><div class="r">${s}</div></div><div class="side-r">${r || ''}<button class="btn sm ghost" data-open="${open}">Open</button></div></li>`;
+    m.body.innerHTML = `
+      <div class="kv">
+        <div>Contactpersoon</div><div>${esc(k.contact) || '—'}</div>
+        <div>E-mail</div><div>${k.email ? `<a href="mailto:${esc(k.email)}">${esc(k.email)}</a>` : '—'}</div>
+        <div>Telefoon</div><div>${esc(k.telefoon) || '—'}</div>
+        <div>Beheer</div><div>${esc(label(KLANT_BEHEER, k.beheer))}${k.beheerAfspraak ? `<div class="muted" style="white-space:pre-wrap;margin-top:2px">${esc(k.beheerAfspraak)}</div>` : ''}</div>
+        ${k.notitie ? `<div>Notitie</div><div style="white-space:pre-wrap">${esc(k.notitie)}</div>` : ''}
+      </div>
+      <div class="grid g2 section">
+        <div><h3>Projecten</h3>${ps.length ? `<ul class="items">${ps.map(p => rij('project:' + p.id, p.naam, esc(label(PROJECT_FASEN, p.fase)) + (p.blokkade ? ' · <span style="color:var(--warn)">blokkade: ' + esc(p.blokkade) + '</span>' : ''), p.fase !== 'afgerond' && p.deadline ? datumCel(p.deadline) : '')).join('')}</ul>` : '<p class="quiet">Nog geen projecten.</p>'}
+          <button class="btn sm" data-new="project" data-klant="${id}">+ Project</button></div>
+        <div><h3>Automatiseringen</h3>${as.length ? `<ul class="items">${as.map(a => rij('automatisering:' + a.id, a.naam, pill(label(AUTO_STATUS, a.status), STATUS_CLS[a.status]) + ' ' + esc(a.beheer === 'beheer' ? 'Doorlopend beheer' : a.beheer === 'eenmalig' ? 'Eenmalig opgeleverd' : '') + (a.platform ? ' · ' + esc(a.platform) : ''))).join('')}</ul>` : '<p class="quiet">Nog geen automatiseringen.</p>'}
+          <button class="btn sm" data-new="automatisering" data-klant="${id}">+ Automatisering</button></div>
+      </div>
+      <div class="section"><h3>Open taken bij deze klant</h3><div data-takenbox="klant:${id}">${takenLijst('klant:' + id)}</div></div>
+      ${ls.length ? `<div class="section"><h3>Afkomstig van lead</h3><ul class="items">${ls.map(l => rij('lead:' + l.id, l.bedrijf, esc(label(LEAD_FASEN, l.fase)))).join('')}</ul></div>` : ''}`;
+  };
+  draw();
+  m.foot.innerHTML = '<button class="btn danger" data-del>Verwijderen</button><span class="grow"></span><button class="btn" data-x>Sluiten</button><button class="btn pri" data-edit>Gegevens bewerken</button>';
+  $('[data-x]', m.foot).onclick = m.close;
+  $('[data-edit]', m.foot).onclick = () => { m.close(); bewerk('klant', klant(id)); };
+  $('[data-del]', m.foot).onclick = async () => {
+    if (!(await vraag('Klant verwijderen?', `<b>${esc(k.naam)}</b> wordt verwijderd. Projecten en automatiseringen blijven bestaan, zonder klant.`, 'Verwijderen'))) return;
+    verwijder('klant', id); m.close(); render();
+  };
+}
+function openRef(ref) {
+  if (ref === 'financien') { closeAll(); location.hash = '#financien'; return; }
+  const [type, id] = ref.split(':');
+  closeAll();
+  if (type === 'klant') return toonKlant(id);
+  const K = SOORTEN[type]; if (!K) return;
+  const rec = byId(S[K.coll], id); if (rec) bewerk(type, rec);
+}
+
+/* ========== Voorbeeldgegevens (fictief) ========== */
+function laadVoorbeeld() {
+  const t = today(), d = n => addDays(t, n), V = { voorbeeld: true, gemaakt: Date.now() };
+  const k1 = uid(), k2 = uid(), p1 = uid(), p2 = uid(), l1 = uid(), l2 = uid(), l3 = uid(), a1 = uid();
+  S.klanten.push(
+    { id: k1, ...V, naam: 'Bakkerij De Molen', contact: 'Sanne de Wit', email: 'sanne@voorbeeld.nl', telefoon: '', beheer: 'beheer', beheerAfspraak: 'Reactie binnen één werkdag bij storing. 3 uur beheer per maand.', notitie: '' },
+    { id: k2, ...V, naam: 'Studio Noord', contact: 'Jeroen Bakker', email: 'jeroen@voorbeeld.nl', telefoon: '', beheer: '', beheerAfspraak: '', notitie: '' });
+  S.projecten.push(
+    { id: p1, ...V, naam: 'Voorraadkoppeling', klantId: k1, fase: 'test', mijlpaal: 'Voorraadkoppeling opleveren', mijlpaalDatum: d(2), deadline: d(9), actie: 'Testresultaten met Sanne bespreken', actieDatum: d(1), blokkade: '', blokkadeDatum: '', notitie: '' },
+    { id: p2, ...V, naam: 'Leads van website naar CRM', klantId: k2, fase: 'bouw', mijlpaal: 'Eerste versie live', mijlpaalDatum: d(6), deadline: d(16), actie: 'Velden in CRM afstemmen', actieDatum: d(3), blokkade: 'Wacht op testaccount CRM', blokkadeDatum: d(-1), notitie: '' });
+  S.leads.push(
+    { id: l1, ...V, bedrijf: 'Atelier West', contact: 'Mila Jansen', email: '', telefoon: '', bron: 'Eigen netwerk', fase: 'offerte', waarde: 1800, behoefte: 'Afspraken uit het boekingsformulier automatisch in de agenda en een herinnering per mail.', actie: 'Offerte nabellen', opvolgdatum: t, notitie: '' },
+    { id: l2, ...V, bedrijf: 'Fietsenmaker Ruiter', contact: 'Tom Ruiter', email: '', telefoon: '', bron: 'Doorverwijzing', fase: 'gesprek', waarde: 1200, behoefte: 'Reparatieorders uit WhatsApp in één overzicht.', actie: 'Kennismakingsgesprek voorbereiden', opvolgdatum: d(3), notitie: '' },
+    { id: l3, ...V, bedrijf: 'Kantoor Linde', contact: '', email: '', telefoon: '', bron: 'LinkedIn', fase: 'contact', waarde: '', behoefte: '', actie: 'Vragen naar handwerk rond facturen', opvolgdatum: d(-2), notitie: '' });
+  S.automatiseringen.push(
+    { id: a1, ...V, naam: 'Voorraad uit kassa naar webshop', voor: k1, platform: 'Make', status: 'bouw', beheer: 'beheer', projectId: p1, link: '', beschrijving: 'Elke nacht → voorraad uit kassasysteem ophalen → aantallen in webshop bijwerken', notitie: '' },
+    { id: uid(), ...V, naam: 'Nieuwe leads naar CRM', voor: k2, platform: 'n8n', status: 'bouw', beheer: 'eenmalig', projectId: p2, link: '', beschrijving: 'Formulier op website → lead in CRM → bericht naar verkoper', notitie: '' },
+    { id: uid(), ...V, naam: 'Inkoopfacturen uit mailbox inlezen', voor: '', platform: '', status: 'idee', beheer: '', projectId: '', link: '', beschrijving: 'PDF-bijlage in mail → gegevens uitlezen → in boekhouding klaarzetten', notitie: 'Komt vaak voor bij kleine bedrijven.' },
+    { id: uid(), ...V, naam: 'Weekoverzicht van eigen studio', voor: 'studio', platform: 'n8n', status: 'live', beheer: '', projectId: '', link: '', beschrijving: 'Maandag 8:00 → open taken en opvolgingen verzamelen → mail naar mezelf', notitie: '' });
+  S.taken.push(
+    { id: uid(), ...V, titel: 'Testresultaten controleren', datum: t, koppeling: 'project:' + p1, notitie: '', klaar: false },
+    { id: uid(), ...V, titel: 'Handleiding voor medewerkers schrijven', datum: d(4), koppeling: 'project:' + p1, notitie: '', klaar: false },
+    { id: uid(), ...V, titel: 'Portfolio-pagina met eerste case', datum: d(-1), koppeling: '', notitie: '', klaar: false });
+  ['klanten', 'projecten', 'leads', 'automatiseringen', 'taken'].forEach(k => Store.save(k));
+  render(); toast('Voorbeeldgegevens geladen');
+}
+function wisVoorbeeld() {
+  ['leads', 'klanten', 'projecten', 'automatiseringen', 'taken'].forEach(k => { const n = S[k].length; S[k] = S[k].filter(x => !x.voorbeeld); if (S[k].length !== n) Store.save(k); });
+  render(); toast('Voorbeelden verwijderd');
+}
+
+/* ========== Acties en gebeurtenissen ========== */
+function zetTerug(d) {
+  if (!d || d.app !== 'studio-dashboard' || !d.data) throw new Error('Dit is geen back-up van het studio-dashboard.');
+  toepassen({ data: d.data, updatedAt: 0 }); Store.save(); render();
+}
+async function vraagEnZetTerug(tekst) {
+  let d; try { d = JSON.parse(tekst); } catch (e) { throw new Error('De tekst is geen geldige back-up (geen JSON).'); }
+  if (!d || d.app !== 'studio-dashboard' || !d.data) throw new Error('Dit is geen back-up van het studio-dashboard.');
+  if (!(await vraag('Back-up terugzetten?', 'De back-up vervangt alle huidige gegevens in het dashboard. Je boekhouding verandert niet.', 'Terugzetten', false))) return false;
+  zetTerug(d); toast('Back-up teruggezet'); return true;
+}
+const ACT = {
+  laadVoorbeeld, wisVoorbeeld,
+  reconnect: () => Store.reconnect(),
+  verbergStart: () => { S.instellingen.startVerborgen = true; Store.save(); render(); },
+  toggleStart: () => { S.instellingen.startVerborgen = !S.instellingen.startVerborgen; Store.save(); render(); },
+  downloadBackup: () => {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(pak(), null, 1)], { type: 'application/json' }));
+    a.download = 'dashboard-backup-' + today() + '.json'; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+  },
+  plakBackup: () => {
+    const m = openModal('Back-up plakken', { wide: true });
+    m.body.innerHTML = '<label class="f" for="plakTxt"><span>Plak hier de back-up (JSON)</span><textarea id="plakTxt" style="min-height:220px;font-family:var(--mono);font-size:12px"></textarea></label><p class="hint" data-err style="color:var(--bad)"></p>';
+    m.foot.innerHTML = '<button class="btn" data-x>Annuleren</button><button class="btn pri" data-ok>Terugzetten</button>';
+    $('[data-x]', m.foot).onclick = m.close;
+    $('[data-ok]', m.foot).onclick = async () => { try { if (await vraagEnZetTerug($('#plakTxt', m.body).value)) m.close(); } catch (e) { $('[data-err]', m.body).textContent = e.message; } };
+    setTimeout(() => $('#plakTxt', m.body).focus(), 30);
+  },
+  wisAlles: async () => {
+    if (!(await vraag('Dashboardgegevens wissen?', 'Alle leads, klanten, projecten, automatiseringen en taken worden uit het dashboard verwijderd. De dagelijkse kopieën in de map <span class="mono">backups/</span> blijven bestaan.', 'Alles wissen', true, 'WISSEN'))) return;
+    S = leeg(); Store.save(); render(); toast('Dashboardgegevens gewist');
+  }
+};
+async function naarBoekhouding(href) { if (Store.pending) await Store.writeNow(); location.href = href; }
+document.addEventListener('click', e => {
+  const t = e.target;
+  const bk = t.closest('a[data-bk]');
+  if (bk) { if (Store.pending) { e.preventDefault(); naarBoekhouding(bk.getAttribute('href')); } return; }
+  const go = t.closest('[data-go]');
+  if (go) { const [a, b] = go.dataset.go.split(':'); closeAll(); if (a === 'nav') location.hash = '#' + b; else if (a === 'bk') naarBoekhouding('boekhouding.html#' + b); else if (a === 'new') bewerk(b, null); return; }
+  const op = t.closest('[data-open]');
+  if (op && !t.closest('.chk')) { e.preventDefault(); openRef(op.dataset.open); return; }
+  const nw = t.closest('[data-new]');
+  if (nw) {
+    const soort = nw.dataset.new; const preset = {};
+    if (nw.dataset.koppel) preset.koppeling = nw.dataset.koppel;
+    if (nw.dataset.klant) { if (soort === 'project') preset.klantId = nw.dataset.klant; if (soort === 'automatisering') preset.voor = nw.dataset.klant; }
+    if (soort !== 'taak') closeAll();
+    bewerk(soort, null, preset); return;
+  }
+  const ui = t.closest('[data-ui]');
+  if (ui) { const [k, v] = ui.dataset.ui.split('='); UI[k] = v; render(); return; }
+  const act = t.closest('[data-act]');
+  if (act && ACT[act.dataset.act]) ACT[act.dataset.act](act);
+});
+document.addEventListener('change', async e => {
+  const el = e.target;
+  if (el.matches('.chk[data-done]')) {
+    const tk = byId(S.taken, el.dataset.done); if (!tk) return;
+    tk.klaar = el.checked; tk.klaarOp = el.checked ? Date.now() : null; Store.save();
+    if (el.checked) toast('Klaar: ' + tk.titel);
+    setTimeout(() => { $$('[data-takenbox]').forEach(b => b.innerHTML = takenLijst(b.dataset.takenbox)); render(); }, 250);
+    return;
+  }
+  if (el.dataset.uisel) { UI[el.dataset.uisel] = el.value; render(); return; }
+  if (el.dataset.set) { S.instellingen[el.dataset.set] = el.value.trim(); Store.save(); render(); toast('Opgeslagen', 1200); return; }
+  if (el.id === 'restoreFile' && el.files[0]) {
+    const f = el.files[0]; el.value = '';
+    try { await vraagEnZetTerug(await f.text()); } catch (err) { toast('Terugzetten mislukt: ' + err.message, 4200); }
+  }
+});
+window.addEventListener('hashchange', () => { render(); window.scrollTo(0, 0); });
+// terug in beeld (bijv. na de boekhouding of een ander apparaat): map en cijfers opnieuw lezen
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState !== 'visible' || modals.length) return;
+  const voor = Store.updatedAt;
+  if (Store.status === 'connected' && !Store.pending) await Store.loadFromFolder();
+  await laadFin(); render();
+  if (Store.updatedAt !== voor) toast('Bijgewerkt vanuit de map');
+});
+window.addEventListener('pageshow', e => { if (e.persisted) laadFin().then(render); });
+// bij een nieuwe dag de werklijst opnieuw opbouwen
+let _dag = today();
+setInterval(() => { if (today() !== _dag) { _dag = today(); render(); } }, 60000);
+
+(async function boot() {
+  try { await Store.init(); } catch (e) { console.error(e); Store.status = 'error'; Store.error = e.message; }
+  await laadFin();
+  render();
+})();
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(e => console.warn('Service worker niet geregistreerd', e));
+</script>
+</body>
+</html>
