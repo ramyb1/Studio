@@ -9,6 +9,7 @@ Een installeerbare web-app (PWA) met je studio-dashboard en je boekhoudtool. De 
 | `index.html` | Het dashboard: Vandaag, Sales, Klanten, Projecten, Automatiseringen, Financiën |
 | `boekhouding.html` | Je boekhoudtool, met een knop terug naar het dashboard |
 | `manifest.webmanifest`, `sw.js`, `icons/` | Zorgen dat je de app kunt installeren en offline kunt gebruiken |
+| `fonts/` | Lettertypen Sora en JetBrains Mono (open licentie), meegeleverd zodat ze ook offline werken |
 
 In je opslagmap komen te staan:
 
@@ -53,4 +54,4 @@ Na een herstart van de browser vraagt Chrome soms opnieuw toestemming voor de ma
 
 ## Updates
 
-Zet nieuwe versies van de bestanden op dezelfde plek. Verhoog ook `VERSIE` in `sw.js`, bijvoorbeeld van `studio-v1` naar `studio-v2`. De app laadt de nieuwe versie zodra je online bent.
+Zet nieuwe versies van de bestanden op dezelfde plek. Verhoog ook `VERSIE` in `sw.js`, bijvoorbeeld van `studio-v2` naar `studio-v3`. De app laadt de nieuwe versie zodra je online bent.

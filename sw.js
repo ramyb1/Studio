@@ -1,8 +1,10 @@
 /* Service worker: de app werkt ook offline. Pagina's eerst via het netwerk (zodat updates
    meteen binnenkomen), met de opgeslagen versie als terugval. Verhoog VERSIE bij een update. */
-const VERSIE = 'studio-v1';
+const VERSIE = 'studio-v2';
 const BESTANDEN = ['./', './index.html', './boekhouding.html', './manifest.webmanifest',
-  './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png', './icons/apple-touch-icon.png'];
+  './icons/icon-192.png', './icons/icon-512.png', './icons/maskable-512.png', './icons/apple-touch-icon.png',
+  './fonts/sora-latin-400-normal.woff2', './fonts/sora-latin-600-normal.woff2', './fonts/sora-latin-700-normal.woff2',
+  './fonts/jetbrains-mono-latin-400-normal.woff2', './fonts/jetbrains-mono-latin-500-normal.woff2'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(VERSIE).then(c => c.addAll(BESTANDEN)).then(() => self.skipWaiting()));
